@@ -32,13 +32,13 @@ DEBUGFLAGS = -DDEBUG -g -pg
 RELEASEFLAGS = -DNODEBUG -DRELASE -O3
 
 # The linker options.
-LIBS   = -lmysqlclient -luniv 
+LIBS   = -lmariadbclient -luniv 
 
 # include directory
-INCLUDE_DIR = 
+INCLUDE_DIR = -I/usr/include/lua5.3
 
 # The options used in linking as well as in any direct use of ld.
-LDFLAGS   = -L/usr/local/lib/sloong -Wl,-rpath=/usr/local/lib/sloong -L/usr/lib64/mysql -Wl,-rpath=/usr/lib64/mysql
+LDFLAGS   = -L/usr/local/lib/sloong -Wl,-rpath=/usr/local/lib/sloong
 
 # The directories in which source files reside.
 # If not specified, only the current directory will be serached.

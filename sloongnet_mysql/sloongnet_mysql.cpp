@@ -10,6 +10,11 @@ bool g_bShowSQLCmd = false;
 bool g_bShowSQLResult = false;
 CLog* g_pLog = nullptr;
 
+#ifndef luaL_register
+#define luaL_register(L,n,f) \
+    { if ((n) == NULL) luaL_setfuncs(L,f,0); else luaL_newlib(L,f); }
+#endif
+
 int Lua_querySql(lua_State* l)
 {
 	CDBProc* s = CDBProc::TryGet(l);
@@ -61,10 +66,10 @@ int Lua_getSqlError(lua_State *l)
 }
 
 
-// Á¬½Ósql·şÎñÆ÷
-// luaÖĞĞèÒªÊ¹ÓÃÓ¢ÎÄ¾äºÅ"."½øĞĞµ÷ÓÃ
-// ²ÎÊı·Ö±ğÎª(µØÖ·£¬¶Ë¿Ú£¬ÓÃ»§£¬ÃÜÂë£¬±íÃû³Æ)
-// ·µ»Ø2¸ö²ÎÊı(Á¬½Ó½á¹û(bool),´íÎóĞÅÏ¢(string))
+// è¿æ¥sqlæœåŠ¡å™¨
+// luaä¸­éœ€è¦ä½¿ç”¨è‹±æ–‡å¥å·"."è¿›è¡Œè°ƒç”¨
+// å‚æ•°åˆ†åˆ«ä¸º(åœ°å€ï¼Œç«¯å£ï¼Œç”¨æˆ·ï¼Œå¯†ç ï¼Œè¡¨åç§°)
+// è¿”å›2ä¸ªå‚æ•°(è¿æ¥ç»“æœ(bool),é”™è¯¯ä¿¡æ¯(string))
 int Lua_connect(lua_State *l)
 {
 	CDBProc* s = CDBProc::TryGet(l);
@@ -100,7 +105,7 @@ static int l_newObject(lua_State* l)
 	CDBProc **p = (CDBProc**)lua_newuserdata(l, sizeof(CDBProc *));
 	*p = new CDBProc;
 	luaL_getmetatable(l, SLOONGNET_MYSQL_METHOD_NAME);
-	lua_setmetatable(l, -2);//Éè¶¨ userdataµÄ metatable
+	lua_setmetatable(l, -2);//è®¾å®š userdataçš„ metatable
 	return 1;
 }
 
@@ -133,14 +138,14 @@ static int Lua_setLog(lua_State* L)
 	return 0;
 }
 
-static const struct luaL_Reg sloongnet_mysql_Function[] =  //µ¼³öµ½¿âÖĞ
+static const struct luaL_Reg sloongnet_mysql_Function[] =  //å¯¼å‡ºåˆ°åº“ä¸­
 {
 	{ "new",l_newObject },
 	{ "SetLog", Lua_setLog },
 	{ NULL,NULL }
 };
 
-static const struct luaL_Reg sloongnet_mysql_Methods[] =  //µ¼³öµ½Ôª±íÖĞ
+static const struct luaL_Reg sloongnet_mysql_Methods[] =  //å¯¼å‡ºåˆ°å…ƒè¡¨ä¸­
 {
 	{ "Connect",Lua_connect },
 	{ "Query",Lua_querySql },
@@ -151,14 +156,20 @@ static const struct luaL_Reg sloongnet_mysql_Methods[] =  //µ¼³öµ½Ôª±íÖĞ
 };
 
 
+int luaopen_sloongnet_mysql_register(lua_State *L)
+{
+	    luaL_newmetatable(L, SLOONGNET_MYSQL_METHOD_NAME);
+	        lua_pushvalue(L, -1);
+		    lua_setfield(L, -2, "__index");
+		        luaL_setfuncs(L, sloongnet_mysql_Methods, 0);
+			    luaL_newlib(L, sloongnet_mysql_Function);
+			        return 1;
+}
 
 extern "C"
 int luaopen_sloongnet_mysql(lua_State* L)
 {
-	luaL_newmetatable(L, SLOONGNET_MYSQL_METHOD_NAME);
-	lua_pushvalue(L, -1);
-	lua_setfield(L, -2, "__index");
-	luaL_register(L, NULL, sloongnet_mysql_Methods);
-	luaL_register(L, "sloongnet_mysql", sloongnet_mysql_Function);
-	return 1;
+	    luaL_requiref(L, "sloongnet_mysql", luaopen_sloongnet_mysql_register, 1);
+	        return 1;
 }
+

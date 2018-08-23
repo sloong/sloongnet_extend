@@ -1,7 +1,7 @@
 #ifndef DBPORCESSER_H
 #define DBPORCESSER_H
 
-#include <mysql/mysql.h>
+#include <mariadb/mysql.h>
 #include "sloongnet_mysql.h"
 namespace Sloong
 {
