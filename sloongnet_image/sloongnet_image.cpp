@@ -5,6 +5,7 @@
 using namespace Sloong;
 using namespace Sloong::Universal;
 
+CLog* g_pLog = nullptr;
 
 int Lua_getThumbImage(lua_State* l)
 {
@@ -51,18 +52,73 @@ int Lua_getThumbImage(lua_State* l)
 	return 1;
 }
 
+static int l_newJPEG(lua_State* l)
+{
+	CDBProc **p = (CDBProc**)lua_newuserdata(l, sizeof(CDBProc *));
+	*p = new CDBProc;
+	luaL_getmetatable(l, SLOONGNET_IMAGE_METHOD_NAME);
+	lua_setmetatable(l, -2);//设定 userdata的 metatable
+	return 1;
+}
+
+static int lua_auto_gc(lua_State* L)
+{
+	CDBProc **s = (CDBProc**)luaL_checkudata(L, 1, SLOONGNET_IMAGE_METHOD_NAME);
+	if (s)
+	{
+		delete *s;
+	}
+	return 0;
+}
+
+
+static int lua_toString(lua_State* L)
+{
+	CJPEG* s = CJPEG::TryGet(L);
+	if (s)
+		lua_pushfstring(L, "Sloongnet extend model for mysql object");
+	return 1;
+}
+
+
+static int Lua_setLog(lua_State* L)
+{
+	g_pLog = static_cast<CLog*>(CLua::GetPointer(L, 1));
+	assert(g_pLog);
+	g_bShowSQLCmd = CLua::GetBoolen(L, 2);
+	g_bShowSQLResult = CLua::GetBoolen(L, 3);
+	return 0;
+}
+
+static const struct luaL_Reg sloongnet_image_Function[] =  //导出到库中
+{
+	{ "new_jpeg",l_newJPEG },
+	{ "GetJPEGThumbnail", Lua_getThumbImage },
+	{ "SetLog", Lua_setLog },
+	{ NULL,NULL }
+};
 
 static const struct luaL_Reg sloongnet_image_Methods[] =  //导出到元表中
 {
 	{ "GetThumbnail", Lua_getThumbImage },
-	{ NULL, NULL }
+	{ "__gc", lua_auto_gc },
+	{ "__tostring", lua_toString },
+	{ NULL,NULL }
 };
 
-
+int luaopen_sloongnet_image_register(lua_State *L)
+{
+	luaL_newmetatable(L, SLOONGNET_IMAGE_METHOD_NAME);
+	lua_pushvalue(L, -1);
+	lua_setfield(L, -2, "__index");
+	luaL_setfuncs(L, sloongnet_mysql_Methods, 0);
+	luaL_newlib(L, sloongnet_mysql_Function);
+	return 1;
+}
 
 extern "C"
 int luaopen_sloongnet_image(lua_State* L)
 {
-	luaL_register(L, "sloongnet_image", sloongnet_image_Methods);
+	luaL_requiref(L, "sloongnet_image", luaopen_sloongnet_image_register, 1);
 	return 1;
 }

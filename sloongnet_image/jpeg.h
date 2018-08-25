@@ -13,6 +13,7 @@ namespace Sloong
 	public:
 		CJPEG();
 		virtual ~CJPEG();
+		static CJPEG* TryGet(lua_State * l);
 		bool Load(string path);
 		bool Save(int quality, int width = 0, int height = 0, string path = "");
 

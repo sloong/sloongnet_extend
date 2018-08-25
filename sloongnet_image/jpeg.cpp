@@ -6,6 +6,7 @@
 #include <setjmp.h>
 #include <jpeglib.h>
 #include "jpeg.h"
+#include "sloongnet_image.h"
 #include <univ/defines.h>
 using namespace std;
 using namespace Sloong;
@@ -20,6 +21,12 @@ Sloong::CJPEG::~CJPEG()
 	SAFE_DELETE_ARR(m_pData);
 }
 
+CJPEG* CJPEG::TryGet(lua_State * l)
+{
+	CJPEG **s = (CJPEG**)luaL_checkudata(l, 1, SLOONGNET_IMAGE_METHOD_NAME);
+	luaL_argcheck(l, s != NULL, 1, "invalid user data");
+	return *s;
+}
 
 bool CJPEG::Load(string path)
 {
