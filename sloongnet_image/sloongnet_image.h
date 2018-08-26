@@ -1,6 +1,7 @@
 #pragma once
 
 #define SLOONGNET_IMAGE_METHOD_NAME "class_sloongnet_image"
+typedef unsigned char UCHAR;
 
 extern "C"
 {
@@ -14,7 +15,7 @@ extern "C"
 #include "CImg.h"
 using namespace cimg_library;
 
-#include "jpeg.h"
+//#include "jpeg.h"
 
 #include <string>
 #include <univ/exception.h>

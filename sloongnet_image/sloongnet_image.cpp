@@ -52,18 +52,18 @@ int Lua_getThumbImage(lua_State* l)
 	return 1;
 }
 
-static int l_newJPEG(lua_State* l)
+/*static int l_newJPEG(lua_State* l)
 {
-	CDBProc **p = (CDBProc**)lua_newuserdata(l, sizeof(CDBProc *));
-	*p = new CDBProc;
+	CJPEG **p = (CJPEG**)lua_newuserdata(l, sizeof(CJPEG *));
+	*p = new CJPEG;
 	luaL_getmetatable(l, SLOONGNET_IMAGE_METHOD_NAME);
-	lua_setmetatable(l, -2);//设定 userdata的 metatable
+	lua_setmetatable(l, -2);
 	return 1;
 }
 
 static int lua_auto_gc(lua_State* L)
 {
-	CDBProc **s = (CDBProc**)luaL_checkudata(L, 1, SLOONGNET_IMAGE_METHOD_NAME);
+	CJPEG **s = (CJPEG**)luaL_checkudata(L, 1, SLOONGNET_IMAGE_METHOD_NAME);
 	if (s)
 	{
 		delete *s;
@@ -85,24 +85,22 @@ static int Lua_setLog(lua_State* L)
 {
 	g_pLog = static_cast<CLog*>(CLua::GetPointer(L, 1));
 	assert(g_pLog);
-	g_bShowSQLCmd = CLua::GetBoolen(L, 2);
-	g_bShowSQLResult = CLua::GetBoolen(L, 3);
 	return 0;
-}
+}*/
 
-static const struct luaL_Reg sloongnet_image_Function[] =  //导出到库中
+static const struct luaL_Reg sloongnet_image_Function[] =  
 {
-	{ "new_jpeg",l_newJPEG },
+//	{ "new_jpeg",l_newJPEG },
 	{ "GetJPEGThumbnail", Lua_getThumbImage },
-	{ "SetLog", Lua_setLog },
+//	{ "SetLog", Lua_setLog },
 	{ NULL,NULL }
 };
 
-static const struct luaL_Reg sloongnet_image_Methods[] =  //导出到元表中
+static const struct luaL_Reg sloongnet_image_Methods[] = 
 {
-	{ "GetThumbnail", Lua_getThumbImage },
-	{ "__gc", lua_auto_gc },
-	{ "__tostring", lua_toString },
+//	{ "GetThumbnail", Lua_getThumbImage },
+//	{ "__gc", lua_auto_gc },
+//	{ "__tostring", lua_toString },
 	{ NULL,NULL }
 };
 
@@ -111,8 +109,8 @@ int luaopen_sloongnet_image_register(lua_State *L)
 	luaL_newmetatable(L, SLOONGNET_IMAGE_METHOD_NAME);
 	lua_pushvalue(L, -1);
 	lua_setfield(L, -2, "__index");
-	luaL_setfuncs(L, sloongnet_mysql_Methods, 0);
-	luaL_newlib(L, sloongnet_mysql_Function);
+	luaL_setfuncs(L, sloongnet_image_Methods, 0);
+	luaL_newlib(L, sloongnet_image_Function);
 	return 1;
 }
 
