@@ -10,11 +10,6 @@ bool g_bShowSQLCmd = false;
 bool g_bShowSQLResult = false;
 CLog* g_pLog = nullptr;
 
-#ifndef luaL_register
-#define luaL_register(L,n,f) \
-    { if ((n) == NULL) luaL_setfuncs(L,f,0); else luaL_newlib(L,f); }
-#endif
-
 int Lua_querySql(lua_State* l)
 {
 	CDBProc* s = CDBProc::TryGet(l);
@@ -158,18 +153,18 @@ static const struct luaL_Reg sloongnet_mysql_Methods[] =  //导出到元表中
 
 int luaopen_sloongnet_mysql_register(lua_State *L)
 {
-	    luaL_newmetatable(L, SLOONGNET_MYSQL_METHOD_NAME);
-	        lua_pushvalue(L, -1);
-		    lua_setfield(L, -2, "__index");
-		        luaL_setfuncs(L, sloongnet_mysql_Methods, 0);
-			    luaL_newlib(L, sloongnet_mysql_Function);
-			        return 1;
+	luaL_newmetatable(L, SLOONGNET_MYSQL_METHOD_NAME);
+	lua_pushvalue(L, -1);
+	lua_setfield(L, -2, "__index");
+	luaL_setfuncs(L, sloongnet_mysql_Methods, 0);
+	luaL_newlib(L, sloongnet_mysql_Function);
+	return 1;
 }
 
 extern "C"
 int luaopen_sloongnet_mysql(lua_State* L)
 {
-	    luaL_requiref(L, "sloongnet_mysql", luaopen_sloongnet_mysql_register, 1);
-	        return 1;
+	luaL_requiref(L, "sloongnet_mysql", luaopen_sloongnet_mysql_register, 1);
+	return 1;
 }
 
