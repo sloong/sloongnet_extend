@@ -29,8 +29,8 @@ int Lua_getThumbImage(lua_State* l)
 		return 2;
 	}
 
-	char* pszFolder = folder.c_str();
-	if( pszFolder[Folder.length()-1] != '\\' && pszFolder[Folder.length()-1] != '/' )
+	const char* pszFolder = folder.c_str();
+	if( pszFolder[folder.length()-1] != '\\' && pszFolder[folder.length()-1] != '/' )
 	{
 		folder = folder + "/";
 	}
