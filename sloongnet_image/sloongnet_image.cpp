@@ -35,12 +35,18 @@ int Lua_getThumbImage(lua_State* l)
 		folder = folder + "/";
 	}
 
+	if( access(folder.c_str(),ACC_W) != 0 )
+	{
+		CLua::PushBoolen(l,false);
+		CLua::PushString(l,CUniversal::Format("No access to write folder:[%s].",folder.c_str()));
+	}
+
 	string fileName = path.substr(path.find_last_of('/') + 1);
 	string extension = fileName.substr(fileName.find_last_of('.') + 1);
 	fileName = fileName.substr(0, fileName.length() - extension.length() - 1);
 	string thumbpath = CUniversal::Format("%s%s_%d_%d_%d.%s", folder, fileName, width, height, quality, extension);
 	CUniversal::CheckFileDirectory(thumbpath);
-	if (access(thumbpath.c_str(), ACC_E) != 0)
+	if (access(thumbpath.c_str(), ACC_W) != 0)
 	{
 		CImg<UCHAR> img(path.c_str());
 		double ratio = (double)img.width() / (double)img.height();
