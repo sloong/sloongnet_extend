@@ -336,3 +336,4 @@ _Pvt_Extensions
 /CodeDB
 VisualGDBCache
 *.old
+sloongnet_image/.vscode/settings.json

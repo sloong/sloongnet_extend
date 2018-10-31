@@ -5,70 +5,107 @@
 using namespace Sloong;
 using namespace Sloong::Universal;
 
+enum ImageFormat{
+	JPEG,
+	PNG,
+	GIF,
+	BMP,
+	WEBP,
+}
+
 CLog* g_pLog = nullptr;
 
+/// 获取缩略图
+// 参数：1，源文件路径
+//		2，目标文件路径
+//		3，宽
+//		4，高
 int Lua_getThumbImage(lua_State* l)
 {
-	auto path = CLua::GetString(l, 1);
-	auto width = CLua::GetDouble(l, 2);
-	auto height = CLua::GetDouble(l, 3);
-	auto quality = CLua::GetDouble(l, 4);
-	auto folder = CLua::GetString(l, 5, "");
+	auto src_path = CLua::GetString(l, 1);
+	auto save_path = CLua::GetString(l, 2);
+	auto width = CLua::GetDouble(l, 3);
+	auto height = CLua::GetDouble(l, 4);
 	
-	if( folder == "")
+	if( save_path == "")
 	{
 		CLua::PushBoolen(l,false);
-		CLua::PushString(l,"Save folder is empty");
+		CLua::PushString(l,"Save path is empty");
 		return 2;
 	}
 
-	if (access(path.c_str(), ACC_E) == -1)
+	if (access(src_path.c_str(), ACC_E) == -1)
 	{
 		CLua::PushBoolen(l,false);
 		CLua::PushString(l,"Cannot read the file.");
 		return 2;
 	}
 
-	const char* pszFolder = folder.c_str();
-	if( pszFolder[folder.length()-1] != '\\' && pszFolder[folder.length()-1] != '/' )
-	{
-		folder = folder + "/";
-	}
-
-	if( access(folder.c_str(),ACC_W) != 0 )
-	{
-		CLua::PushBoolen(l,false);
-		CLua::PushString(l,CUniversal::Format("No access to write folder:[%s].",folder.c_str()));
-	}
-
-	string fileName = path.substr(path.find_last_of('/') + 1);
-	string extension = fileName.substr(fileName.find_last_of('.') + 1);
-	fileName = fileName.substr(0, fileName.length() - extension.length() - 1);
-	string thumbpath = CUniversal::Format("%s%s_%d_%d_%d.%s", folder, fileName, width, height, quality, extension);
-	CUniversal::CheckFileDirectory(thumbpath);
+	
+	
 	if (access(thumbpath.c_str(), ACC_W) != 0)
 	{
-		CImg<UCHAR> img(path.c_str());
-		double ratio = (double)img.width() / (double)img.height();
-		if (ratio > 1.0f)
+		CUniversal::CheckFileDirectory(save_path);
+
+		string str_cmd = CUniversal::Format("convert -sample %dx%d %s %s", width, height, src_path.c_str(), save_path.c_str());
+
+		if( CUniversal::RunSystemCmd(str_cmd))
 		{
-			height = width / ratio;
+			CLua::PushBoolen(l,true);
+			CLua::PushString(l, thumbpath);
 		}
 		else
 		{
-			width = height * ratio;
+			CLua::PushBoolen(l,false);
+			CLua::PushString(l, "run convert cmd fialed.");
 		}
-		if (width == 0 || height == 0)
+	}
+}
+
+
+int lua_ResizeImage()
+{
+	auto src_path = CLua::GetString(l, 1);
+	auto save_path = CLua::GetString(l, 2);
+	auto width = CLua::GetDouble(l, 3);
+	auto height = CLua::GetDouble(l, 4);
+	auto quality = CLua::GetDouble(l, 5, -1);	
+	
+	if( save_path == "")
+	{
+		CLua::PushBoolen(l,false);
+		CLua::PushString(l,"Save path is empty");
+		return 2;
+	}
+
+	if (access(src_path.c_str(), ACC_E) == -1)
+	{
+		CLua::PushBoolen(l,false);
+		CLua::PushString(l,"Cannot read the file.");
+		return 2;
+	}
+	
+	if (access(thumbpath.c_str(), ACC_W) != 0)
+	{
+		CUniversal::CheckFileDirectory(save_path);
+
+		string str_cmd = CUniversal::Format("convert -resize %dx%d %s %s", width, height, src_path.c_str(), save_path.c_str());
+		if ( quality > 0 )
+		{
+			str_cmd.append(CUniversal::Format(" -quality %d",quality))
+		}
+		if( CUniversal::RunSystemCmd(str_cmd))
+		{
+			CLua::PushBoolen(l,true);
+			CLua::PushString(l, thumbpath);
+		}
+		else
 		{
 			CLua::PushBoolen(l,false);
-			CLua::PushString(l,CUniversal::Format("Image file size data error.W[%d],H[%d],R[%f]",img.width(),img.height(),ratio));
-			return 2;
+			CLua::PushString(l, "run convert cmd fialed.");
 		}
-		img.resize(width, height);
-		img.save(thumbpath.c_str());
 	}
-	CLua::PushBoolen(l,true);
-	CLua::PushString(l, thumbpath);
+	
 	return 2;
 }
 
@@ -108,10 +145,16 @@ static int Lua_setLog(lua_State* L)
 	return 0;
 }*/
 
+/*////////////////////////////
+需要支持的功能有：
+	jpg,png,gif,bmp,webp 缩放
+	jpg,png,gif,bmp 转换到webp
+////////////////////////////*/
 static const struct luaL_Reg sloongnet_image_Function[] =  
 {
 //	{ "new_jpeg",l_newJPEG },
-	{ "GetJPEGThumbnail", Lua_getThumbImage },
+	{ "GetThumbImage", Lua_getThumbImage },
+	{ "Resize", lua_ResizeImage },
 //	{ "SetLog", Lua_setLog },
 	{ NULL,NULL }
 };
